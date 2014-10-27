@@ -1,7 +1,37 @@
 #!/usr/bin/env python3
 
+import logging
+import os
+
 def main():
-	...
+	# TODO: Allow overriding of path.
+	top_module = Module(os.path.expanduser('~/.dotfiles'))
+	top_module.process()
+
+class Module(object):
+	def __init__(self, path):
+		logging.debug('Initiating new module at path: %s', path)
+
+		self.path = path
+		self.config = {}
+
+		self._load_config()
+
+	def process(self):
+		logging.info('Processing %s...', self.path)
+
+	def _load_config(self):
+		logging.debug('Loading config for %s...', self.path)
+
+		if 'dotfile.json' in os.listdir(self.path):
+			file = open(os.path.join(self.path, 'dotfile.json'))
+			config = json.load(file)
+			file.close()
+			logging.debug('Done.')
+		else:
+			logging.debug('None found.')
+
+		self.config = config
 
 if __name__ == '__main__':
 	main()
