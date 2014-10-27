@@ -26,9 +26,7 @@ class Module(object):
 	def process(self):
 		logging.info('Processing %s...', self.path)
 
-		deps = self._get_dependencies()
-
-		print(deps)
+		self._process_dependencies()
 
 	def _load_config(self):
 		logging.debug('Loading config for %s...', self.path)
@@ -45,7 +43,18 @@ class Module(object):
 
 		self.config = config
 
+	def _process_dependencies(self):
+		# Process dependencies before this module
+		for dep in self._get_dependencies():
+			path = os.path.join(self.path, dep) + '.module'
+			if not os.path.exists(path):
+				logging.warning('Module %s not found, ignoring (looked for %s).', dep, path)
+				continue
+
+			Module(path).process()
+
 	def _get_dependencies(self):
+		logging.debug('Calculating dependencies for %s...', self.path)
 		whitelist = self.config.get('whitelist', False)
 
 		dep_list = [] if whitelist else self._get_modules_in_path()
@@ -60,6 +69,7 @@ class Module(object):
 				elif not enable and module in dep_list:
 					dep_list.remove(module)
 
+		logging.debug('Done.')
 		return dep_list
 
 	def _get_modules_in_path(self):
