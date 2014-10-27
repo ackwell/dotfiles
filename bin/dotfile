@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 
+import collections
+import getpass
+import glob
+import json
 import logging
 import os
+import platform
+import re
 
 def main():
 	# TODO: Allow overriding of path.
@@ -20,18 +26,52 @@ class Module(object):
 	def process(self):
 		logging.info('Processing %s...', self.path)
 
+		deps = self._get_dependencies()
+
+		print(deps)
+
 	def _load_config(self):
 		logging.debug('Loading config for %s...', self.path)
 
-		if 'dotfile.json' in os.listdir(self.path):
+		try:
 			file = open(os.path.join(self.path, 'dotfile.json'))
-			config = json.load(file)
-			file.close()
-			logging.debug('Done.')
-		else:
+		except FileNotFoundError:
 			logging.debug('None found.')
+			return
+
+		config = json.load(file, object_pairs_hook=collections.OrderedDict)
+		file.close()
+		logging.debug('Done.')
 
 		self.config = config
+
+	def _get_dependencies(self):
+		whitelist = self.config.get('whitelist', False)
+
+		dep_list = [] if whitelist else self._get_modules_in_path()
+
+		for pattern, modules in self.config.get('modules', {}).items():
+			if not self._system_matches(pattern):
+				continue
+
+			for module, enable in modules.items():
+				if enable and module not in dep_list:
+					dep_list.append(module)
+				elif not enable and module in dep_list:
+					dep_list.remove(module)
+
+		return dep_list
+
+	def _get_modules_in_path(self):
+		return [os.path.basename(mod)[:-7] for mod in glob.iglob(os.path.join(self.path, '*.module'))]
+
+	def _system_matches(self, pattern):
+		return re.search(pattern, system.id_string)
+
+class System(object):
+	def __init__(self):
+		self.id_string = getpass.getuser() + '@' + platform.node() + ' ' + platform.system() + '-' + platform.release() + '-' + platform.machine()
+system = System()
 
 if __name__ == '__main__':
 	main()
