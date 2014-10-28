@@ -1,5 +1,5 @@
 {
-	"modules": {
+	"rules": {
 		".": {
 			"all-os": true,
 			"all-but-osx": true
