@@ -47,13 +47,13 @@ class Module(object):
 		logging.debug('Loading config')
 
 		try:
-			file = open(os.path.join(self.path, 'dotfile.json'))
+			conf_file = open(os.path.join(self.path, 'dotfile.json'))
 		except FileNotFoundError:
 			logging.debug('None found')
 			return
 
-		config = json.load(file, object_pairs_hook=collections.OrderedDict)
-		file.close()
+		config = json.load(conf_file, object_pairs_hook=collections.OrderedDict)
+		conf_file.close()
 
 		self.config = config
 
