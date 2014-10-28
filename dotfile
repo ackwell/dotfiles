@@ -10,15 +10,18 @@ import platform
 import re
 
 def main():
+	system = System()
+
 	# TODO: Allow overriding of path.
-	top_module = Module(os.path.expanduser('~/.dotfiles'))
+	top_module = Module(os.path.expanduser('~/.dotfiles'), system)
 	top_module.process()
 
 class Module(object):
-	def __init__(self, path):
+	def __init__(self, path, system):
 		logging.debug('Initiating new module at path: %s', path)
 
 		self.path = path
+		self.system = system
 		self.config = {}
 
 		self._load_config()
@@ -60,7 +63,7 @@ class Module(object):
 				logging.warning('Module "%s" not found, ignoring (looked for %s).', dep, path)
 				continue
 
-			Module(path).process()
+			Module(path, self.system).process()
 
 	def _get_dependencies(self):
 		logging.debug('Calculating dependencies for %s', self.config['name'])
@@ -84,12 +87,11 @@ class Module(object):
 		return [os.path.basename(mod)[:-7] for mod in glob.iglob(os.path.join(self.path, '*.module'))]
 
 	def _system_matches(self, pattern):
-		return re.search(pattern, system.id_string)
+		return re.search(pattern, self.system.id_string)
 
 class System(object):
 	def __init__(self):
 		self.id_string = getpass.getuser() + '@' + platform.node() + ' ' + platform.system() + '-' + platform.release() + '-' + platform.machine()
-system = System()
 
 if __name__ == '__main__':
 	main()
