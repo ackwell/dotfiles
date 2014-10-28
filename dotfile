@@ -22,29 +22,38 @@ class Module(object):
 		self.config = {}
 
 		self._load_config()
+		self._set_name()
 
 	def process(self):
-		logging.info('Processing %s...', self.path)
+		logging.info('Processing %s', self.path)
 
 		self._process_dependencies()
 
 	def _load_config(self):
-		logging.debug('Loading config for %s...', self.path)
+		logging.debug('Loading config')
 
 		try:
 			file = open(os.path.join(self.path, 'dotfile.json'))
 		except FileNotFoundError:
-			logging.debug('None found.')
+			logging.debug('None found')
 			return
 
 		config = json.load(file, object_pairs_hook=collections.OrderedDict)
 		file.close()
-		logging.debug('Done.')
 
 		self.config = config
 
+	def _set_name(self):
+		# If no name is set in config for the module, calculate one
+		if not self.config.get('name'):
+			basename = os.path.basename(self.path)
+			if basename.endswith('.module'):
+				basename = basename[:-7]
+			self.config['name'] = basename
+
 	def _process_dependencies(self):
 		# Process dependencies before this module
+		logging.debug('Processing dependencies for %s...', self.config['name'])
 		for dep in self._get_dependencies():
 			path = os.path.join(self.path, dep) + '.module'
 			if not os.path.exists(path):
@@ -54,7 +63,7 @@ class Module(object):
 			Module(path).process()
 
 	def _get_dependencies(self):
-		logging.debug('Calculating dependencies for %s...', self.path)
+		logging.debug('Calculating dependencies for %s', self.config['name'])
 		whitelist = self.config.get('whitelist', False)
 
 		dep_list = [] if whitelist else self._get_modules_in_path()
@@ -69,7 +78,6 @@ class Module(object):
 				elif not enable and module in dep_list:
 					dep_list.remove(module)
 
-		logging.debug('Done.')
 		return dep_list
 
 	def _get_modules_in_path(self):
