@@ -23,14 +23,25 @@ class Module(object):
 		self.path = path
 		self.system = system
 		self.config = {}
+		self.should_process = True
 
+		self._check_exists()
 		self._load_config()
 		self._set_name()
 
 	def process(self):
+		if not self.should_process:
+			return
+
 		logging.info('Processing %s', self.path)
 
 		self._process_dependencies()
+		self._process_files()
+
+	def _check_exists(self):
+		if not os.path.exists(self.path):
+			logging.warning('Module not found, ignoring (looked for %s).', self.path)
+			self.should_process = False
 
 	def _load_config(self):
 		logging.debug('Loading config')
@@ -59,10 +70,6 @@ class Module(object):
 		logging.debug('Processing dependencies for %s...', self.config['name'])
 		for dep in self._get_dependencies():
 			path = os.path.join(self.path, dep) + '.module'
-			if not os.path.exists(path):
-				logging.warning('Module "%s" not found, ignoring (looked for %s).', dep, path)
-				continue
-
 			Module(path, self.system).process()
 
 	def _get_dependencies(self):
@@ -88,6 +95,9 @@ class Module(object):
 
 	def _system_matches(self, pattern):
 		return re.search(pattern, self.system.id_string)
+
+	def _process_files(self):
+		...
 
 class System(object):
 	def __init__(self):
