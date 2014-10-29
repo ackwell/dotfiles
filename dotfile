@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import collections
+import fnmatch
 import getpass
 import glob
 import json
@@ -14,7 +15,12 @@ def main():
 
 	# TODO: Allow overriding of path.
 	top_module = Module(os.path.expanduser('~/.dotfiles'), system)
-	top_module.process()
+	load_order = top_module.get_load_order()
+
+	# TODO: Split this into seperate function and all that jazz
+	for module in load_order:
+		print(module.path)
+		module.link()
 
 class Module(object):
 	def __init__(self, path, system):
@@ -23,25 +29,38 @@ class Module(object):
 		self.path = path
 		self.system = system
 		self.config = {}
-		self.should_process = True
+		self.exists = True
 
 		self._check_exists()
 		self._load_config()
 		self._set_name()
 
-	def process(self):
-		if not self.should_process:
+	def get_load_order(self, load_order=None):
+		# If this module doesn't actually exist, cut out now.
+		if not self.exists:
 			return
 
-		logging.info('Processing %s', self.path)
+		if load_order is None:
+			load_order = []
 
-		self._process_dependencies()
-		self._process_files()
+		# Dependencies need to be loaded before the parent
+		for dep in self._get_dependencies():
+			path = os.path.join(self.path, dep) + '.module'
+			module = Module(path, self.system)
+			module.get_load_order(load_order)
+
+		# Include this module
+		load_order.append(self)
+
+		return load_order
+
+	def link(self):
+		...
 
 	def _check_exists(self):
 		if not os.path.exists(self.path):
 			logging.warning('Module not found, ignoring (looked for %s).', self.path)
-			self.should_process = False
+			self.exists = False
 
 	def _load_config(self):
 		logging.debug('Loading config')
@@ -65,16 +84,9 @@ class Module(object):
 				basename = basename[:-7]
 			self.config['name'] = basename
 
-	def _process_dependencies(self):
-		# Process dependencies before this module
-		logging.debug('Processing dependencies for %s...', self.config['name'])
-		for dep in self._get_dependencies():
-			path = os.path.join(self.path, dep) + '.module'
-			Module(path, self.system).process()
-
 	def _get_dependencies(self):
 		logging.debug('Calculating dependencies for %s', self.config['name'])
-		whitelist = self.config.get('whitelist', False)
+		whitelist = self.config.get('mode', 'blacklist') == 'whitelist'
 
 		dep_list = [] if whitelist else self._get_modules_in_path()
 
@@ -95,9 +107,6 @@ class Module(object):
 
 	def _system_matches(self, pattern):
 		return re.search(pattern, self.system.id_string)
-
-	def _process_files(self):
-		...
 
 class System(object):
 	def __init__(self):

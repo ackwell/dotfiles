@@ -1,4 +1,5 @@
 {
+	"mode": "whitelist",
 	"rules": {
 		".": {
 			"all-os": true,
