@@ -9,6 +9,7 @@ import logging
 import os
 import platform
 import re
+import uuid
 
 def main():
 	system = System()
@@ -22,6 +23,8 @@ def main():
 		print(module.path)
 		module.link()
 
+	print(system.link_queue)
+
 class Module(object):
 	def __init__(self, path, system):
 		logging.debug('Initiating new module at path: %s', path)
@@ -31,6 +34,7 @@ class Module(object):
 		self.config = {}
 		self.exists = True
 
+		# Initial setup
 		self._check_exists()
 		self._load_config()
 		self._set_name()
@@ -55,7 +59,19 @@ class Module(object):
 		return load_order
 
 	def link(self):
-		...
+		link_dir = os.path.join(self.path, 'link')
+
+		# Module doesn't have files to link, jump out
+		# TODO: Handle special cases set by parent modules (i.e. bin, source, etc)
+		if not os.path.exists(link_dir):
+			return
+
+		# Walk the link dir and ask for symlinks (they will be queued to allow for optimisation)
+		for root, dirs, files in os.walk(link_dir):
+			link_rel = root[len(link_dir):].lstrip('/')
+
+			for file in files:
+				self.system.symlink(os.path.join(root, file), link_rel, self.config['name'])
 
 	def _check_exists(self):
 		if not os.path.exists(self.path):
@@ -111,6 +127,40 @@ class Module(object):
 class System(object):
 	def __init__(self):
 		self.id_string = getpass.getuser() + '@' + platform.node() + ' ' + platform.system() + '-' + platform.release() + '-' + platform.machine()
+
+		self.link_queue = collections.defaultdict(lambda: collections.defaultdict(list))
+
+	def symlink(self, source_file, target_dir, module_name=None):
+		# If no module name is set, use a UUID to (try to) prevent clobbering
+		if module_name is None:
+			module_name = uuid.uuid4()
+
+		# Loop over path segments, building queue's directory structure
+		segments = self._split_path(target_dir)
+		previous = ''
+		for segment in segments:
+			self.link_queue[previous][module_name].append(segment)
+			previous = os.path.join(previous, segment)
+
+		# Insert the absolute path to signify the entry is a link
+		self.link_queue[target_dir][module_name].append(source_file)
+
+	def _split_path(self, path):
+		# Hat tips to https://stackoverflow.com/questions/4579908/cross-platform-splitting-of-path-in-python
+		parts = []
+		while True:
+			head, tail = os.path.split(path)
+
+			if head == path:
+				if path:
+					parts.append(path)
+				break
+
+			parts.append(tail)
+			path = head
+
+		parts.reverse()
+		return parts
 
 if __name__ == '__main__':
 	main()
