@@ -23,11 +23,9 @@ def main():
 	for module in load_order:
 		module.link()
 
-	print(system.link_queue)
-
 	# TODO: Only do final linking if not a dry run
-	#output_dir = os.path.expanduser('~/dotfiletest')
-	#system.execute(output_dir)
+	output_dir = os.path.expanduser('~/dotfiletest')
+	system.execute(output_dir, load_order)
 
 class Module(object):
 	def __init__(self, path, system):
@@ -152,20 +150,38 @@ class System(object):
 		# Insert the absolute path to signify the entry is a link
 		self.link_queue[previous][module_name]['files'].append(segments[-1])
 
-	def execute(self, output_dir):
-		self._recurse_create_links('', output_dir)
+	def execute(self, output_dir, load_order):
+		self._recurse_create_links('', output_dir, load_order)
 
-	def _recurse_create_links(self, path, output_dir):
+	def _recurse_create_links(self, path, output_dir, load_order):
 		queue = self.link_queue[path]
 
 		# If there's only one module vying for this dir, optimise by linking dir.
 		# (Never link top level)
 		if len(queue) == 1 and path != '':
-			# TODO: Code here
+			# Will only ever have the one module
+			source = os.path.join(output_dir, path)
+			target = list(queue.values())[0]['path']
+			print('symlink:', source, '-->', target)
 			return
 
-		# More than one module wants in, flatten lists and recurse/link each
-		# TODO: Code here
+		# More than one module wants in, recurse/link each
+		# TODO: Deal with possible clobbering
+		for module in load_order:
+			module_name = module.config['name']
+			if module_name not in queue:
+				continue
+
+			# Link files first
+			data = queue[module_name]
+			for file in data['files']:
+				source = os.path.join(output_dir, path, file)
+				target = os.path.join(data['path'], file)
+				print('symlink:', source, '-->', target)
+
+			# Recurse into dirs
+			for dir_ in data['dirs']:
+				self._recurse_create_links(os.path.join(path, dir_), output_dir, load_order)
 
 	def _split_path(self, path):
 		# Hat tips to https://stackoverflow.com/questions/4579908/cross-platform-splitting-of-path-in-python
