@@ -4,6 +4,7 @@ import collections
 import fnmatch
 import getpass
 import glob
+import itertools
 import json
 import logging
 import os
@@ -20,10 +21,13 @@ def main():
 
 	# TODO: Split this into seperate function and all that jazz
 	for module in load_order:
-		print(module.path)
 		module.link()
 
 	print(system.link_queue)
+
+	# TODO: Only do final linking if not a dry run
+	#output_dir = os.path.expanduser('~/dotfiletest')
+	#system.execute(output_dir)
 
 class Module(object):
 	def __init__(self, path, system):
@@ -71,7 +75,7 @@ class Module(object):
 			link_rel = root[len(link_dir):].lstrip('/')
 
 			for file in files:
-				self.system.symlink(os.path.join(root, file), link_rel, self.config['name'])
+				self.system.queue_symlink(link_dir, os.path.join(link_rel, file), self.config['name'])
 
 	def _check_exists(self):
 		if not os.path.exists(self.path):
@@ -128,22 +132,40 @@ class System(object):
 	def __init__(self):
 		self.id_string = getpass.getuser() + '@' + platform.node() + ' ' + platform.system() + '-' + platform.release() + '-' + platform.machine()
 
-		self.link_queue = collections.defaultdict(lambda: collections.defaultdict(list))
+		self.link_queue = collections.defaultdict(
+			lambda: collections.defaultdict(
+				lambda: {'files':[], 'dirs':[], 'path':''}))
 
-	def symlink(self, source_file, target_dir, module_name=None):
+	def queue_symlink(self, base_path, target, module_name=None):
 		# If no module name is set, use a UUID to (try to) prevent clobbering
 		if module_name is None:
 			module_name = uuid.uuid4()
 
 		# Loop over path segments, building queue's directory structure
-		segments = self._split_path(target_dir)
+		segments = self._split_path(target)
 		previous = ''
-		for segment in segments:
-			self.link_queue[previous][module_name].append(segment)
+		for segment in segments[:-1]:
+			self.link_queue[previous][module_name]['dirs'].append(segment)
 			previous = os.path.join(previous, segment)
+			self.link_queue[previous][module_name]['path'] = os.path.join(base_path, previous)
 
 		# Insert the absolute path to signify the entry is a link
-		self.link_queue[target_dir][module_name].append(source_file)
+		self.link_queue[previous][module_name]['files'].append(segments[-1])
+
+	def execute(self, output_dir):
+		self._recurse_create_links('', output_dir)
+
+	def _recurse_create_links(self, path, output_dir):
+		queue = self.link_queue[path]
+
+		# If there's only one module vying for this dir, optimise by linking dir.
+		# (Never link top level)
+		if len(queue) == 1 and path != '':
+			# TODO: Code here
+			return
+
+		# More than one module wants in, flatten lists and recurse/link each
+		# TODO: Code here
 
 	def _split_path(self, path):
 		# Hat tips to https://stackoverflow.com/questions/4579908/cross-platform-splitting-of-path-in-python
