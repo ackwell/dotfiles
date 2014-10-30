@@ -134,6 +134,8 @@ class System(object):
 			lambda: collections.defaultdict(
 				lambda: {'files':[], 'dirs':[], 'path':''}))
 
+		self.action_log = []
+
 	def queue_symlink(self, base_path, target, module_name=None):
 		# If no module name is set, use a UUID to (try to) prevent clobbering
 		if module_name is None:
@@ -142,6 +144,7 @@ class System(object):
 		# Loop over path segments, building queue's directory structure
 		segments = self._split_path(target)
 		previous = ''
+		self.link_queue[previous][module_name]['path'] = os.path.join(base_path)
 		for segment in segments[:-1]:
 			self.link_queue[previous][module_name]['dirs'].append(segment)
 			previous = os.path.join(previous, segment)
@@ -160,9 +163,9 @@ class System(object):
 		# (Never link top level)
 		if len(queue) == 1 and path != '':
 			# Will only ever have the one module
-			source = os.path.join(output_dir, path)
-			target = list(queue.values())[0]['path']
-			print('symlink:', source, '-->', target)
+			source = list(queue.values())[0]['path']
+			target = os.path.join(output_dir, path)
+			self._symlink(source, target, True)
 			return
 
 		# More than one module wants in, recurse/link each
@@ -175,9 +178,9 @@ class System(object):
 			# Link files first
 			data = queue[module_name]
 			for file in data['files']:
-				source = os.path.join(output_dir, path, file)
-				target = os.path.join(data['path'], file)
-				print('symlink:', source, '-->', target)
+				source = os.path.join(data['path'], file)
+				target = os.path.join(output_dir, path, file)
+				self._symlink(source, target)
 
 			# Recurse into dirs
 			for dir_ in data['dirs']:
@@ -199,6 +202,10 @@ class System(object):
 
 		parts.reverse()
 		return parts
+
+	def _symlink(self, source, target, target_is_directory=False):
+		self.action_log.append(('symlink', source, target, target_is_directory))
+		os.symlink(source, target, target_is_directory)
 
 if __name__ == '__main__':
 	main()
