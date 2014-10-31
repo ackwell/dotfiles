@@ -16,6 +16,10 @@ import uuid
 def main():
 	system = System()
 
+	# Main linking output
+	output_dir = os.path.expanduser('~/dotfiletest')
+	system.add_output('link', output_dir)
+
 	# TODO: Allow overriding of path.
 	top_module = Module(os.path.expanduser('~/.dotfiles'), system)
 	load_order = top_module.get_load_order()
@@ -25,8 +29,7 @@ def main():
 		module.link()
 
 	# TODO: Only do final linking if not a dry run
-	output_dir = os.path.expanduser('~/dotfiletest')
-	system.execute(output_dir, load_order)
+	system.execute(load_order)
 
 class Module(object):
 	def __init__(self, path, system):
@@ -74,7 +77,8 @@ class Module(object):
 			link_rel = root[len(link_dir):].lstrip('/')
 
 			for file in files:
-				self.system.queue_symlink(link_dir, os.path.join(link_rel, file), self.config['name'])
+				# TODO: 'link' shouldn't be hardcoded, allow for multiple thingos and stuff
+				self.system.queue_symlink('link', link_dir, os.path.join(link_rel, file), self.config['name'])
 
 	def _check_exists(self):
 		if not os.path.exists(self.path):
@@ -131,36 +135,64 @@ class System(object):
 	def __init__(self):
 		self.id_string = getpass.getuser() + '@' + platform.node() + ' ' + platform.system() + '-' + platform.release() + '-' + platform.machine()
 
+		self.output_map = collections.defaultdict(str)
+		self.backup_mappings = collections.defaultdict(list)
 		self.link_queue = collections.defaultdict(
 			lambda: collections.defaultdict(
-				lambda: {'files':[], 'dirs':[], 'path':''}))
+				lambda: collections.defaultdict(
+					lambda: {'files':[], 'dirs':[], 'path':''})))
 
 		self.action_log = []
 
 		self.persistent_state = ''
 
-	def queue_symlink(self, base_path, target, module_name=None):
+	def add_output(self, name, path):
+		# Backup if already set
+		if name in self.output_map:
+			self.backup_mappings[name].append(self.output_map[name])
+
+		self.output_map[name] = path
+
+	def remove_output(self, name):
+		# Remove the existing one
+		try:
+			del self.output_map[name]
+		except KeyError:
+			logging.warning('Tried to remove non-existant output map ' + name)
+
+		# If there's a backup for this mapping, restore it
+		if name in self.backup_mappings and len(self.backup_mappings[name]):
+			self.output_map[name] = self.backup_mappings[name].pop()
+
+	def queue_symlink(self, output_name, base_path, target, module_name=None):
 		# If no module name is set, use a UUID to (try to) prevent clobbering
 		if module_name is None:
 			module_name = uuid.uuid4()
 
+		if output_name not in self.output_map:
+			logging.warning('Queue for unknown output name %s requested', output_name)
+			return
+
+		queue = self.link_queue[self.output_map[output_name]]
+
 		# Loop over path segments, building queue's directory structure
 		segments = self._split_path(target)
 		previous = ''
-		self.link_queue[previous][module_name]['path'] = os.path.join(base_path)
+		queue[previous][module_name]['path'] = os.path.join(base_path)
 		for segment in segments[:-1]:
-			self.link_queue[previous][module_name]['dirs'].append(segment)
+			queue[previous][module_name]['dirs'].append(segment)
 			previous = os.path.join(previous, segment)
-			self.link_queue[previous][module_name]['path'] = os.path.join(base_path, previous)
+			queue[previous][module_name]['path'] = os.path.join(base_path, previous)
 
 		# Insert the absolute path to signify the entry is a link
-		self.link_queue[previous][module_name]['files'].append(segments[-1])
+		queue[previous][module_name]['files'].append(segments[-1])
 
-	def execute(self, output_dir, load_order):
-		self._recurse_create_links('', output_dir, load_order)
+	def execute(self, load_order):
+		for output_dir in self.link_queue.keys():
+			self._recurse_create_links('', output_dir, load_order)
 
 	def _recurse_create_links(self, path, output_dir, load_order):
-		queue = self.link_queue[path]
+		queue = self.link_queue[output_dir][path]
 
 		# If there's only one module vying for this dir, optimise by linking dir.
 		# (Never link top level)
