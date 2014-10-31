@@ -17,7 +17,8 @@ Note: a bunch of these are planned features. It's not finished yet, yo.
 - [x] Inclusion/exclusion rules based on current environment
 - [x] Optimised symlinking
 - [x] Module-specified link directories
-- [ ] Single-command clean uninstall
+- [ ] Really nice CLI that satisfies my anality
+- [ ] Single-command clean(ish) uninstall
 - [ ] Other stuff I haven't thought of yet
 
 More fancy documentation and so on to come as I think it up. Also, as I write it. Development and all that.
