@@ -10,6 +10,7 @@ import logging
 import os
 import platform
 import re
+import time
 import uuid
 
 def main():
@@ -136,6 +137,8 @@ class System(object):
 
 		self.action_log = []
 
+		self.persistent_state = ''
+
 	def queue_symlink(self, base_path, target, module_name=None):
 		# If no module name is set, use a UUID to (try to) prevent clobbering
 		if module_name is None:
@@ -204,8 +207,65 @@ class System(object):
 		return parts
 
 	def _symlink(self, source, target, target_is_directory=False):
+		if not self._handle_exists(target):
+			return
+
 		self.action_log.append(('symlink', source, target, target_is_directory))
+		logging.debug('Symlinking %s to %s (is%s a directory)', source, target, '' if target_is_directory else ' not')
+
 		os.symlink(source, target, target_is_directory)
+
+	def _handle_exists(self, target):
+		# If the file doesn't exist already, OK to continue
+		if not os.path.lexists(target):
+			return True
+
+		# File exists, decide how to handle
+		state = self.persistent_state
+		while len(state) != 1 or state.lower() not in 'sob':
+			state = input(target + ' already exists. [s]kip, [S]kip all, [o]verwrite, [O]verwrite all, [b]ackup, [B]ackup all: ')
+
+		# Persist the state if it was uppercase
+		if state.isupper():
+			state = state.lower()
+			self.persistent_state = state
+
+		# Skip - return false, handled by caller
+		if state == 's':
+			return False
+
+		# Overwrite - remove old file
+		if state == 'o':
+			self._remove(target)
+
+		# Backup
+		elif state == 'b':
+			self._backup(target)
+
+		# Return True to signify it's OK to continue
+		return True
+
+	def _remove(self, target):
+		self.action_log.append(('remove', target))
+		logging.debug('Removing ' + target)
+
+		if os.path.isdir(filename) and not os.path.islink(filename):
+			for root, dirs, files in os.walk(filename, topdown=False):
+				for file in files:
+					os.remove(os.path.join(root, file))
+				for dir_ in dirs:
+					os.remove(os.path.join(root, dir_))
+		else:
+			os.remove(filename)
+
+	def _backup(self, target):
+		new_name = target + '.backup-' + str(round(time.time()))
+
+		self.action_log.append(('rename', target, new_name))
+		logging.debug('Backing up %s to %s', target, new_name)
+
+		os.rename(target, new_name)
+
 
 if __name__ == '__main__':
 	main()
