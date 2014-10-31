@@ -16,7 +16,7 @@ Note: a bunch of these are planned features. It's not finished yet, yo.
 - [x] Module dependencies
 - [x] Inclusion/exclusion rules based on current environment
 - [x] Optimised symlinking
-- [ ] Module-specified link directories
+- [x] Module-specified link directories
 - [ ] Single-command clean uninstall
 - [ ] Other stuff I haven't thought of yet
 

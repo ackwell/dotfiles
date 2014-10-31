@@ -1,18 +1,6 @@
 {
-	"mode": "whitelist",
-	"rules": {
-		".": {
-			"all-os": true,
-			"all-but-osx": true
-		},
-
-		"Darwin": {
-			"all-but-osx": false,
-			"only-osx": true
-		},
-
-		"Windows": {
-			"only-windows": true
-		}
-	}
+	"outputs": [
+		"bin",
+		"source"
+	]
 }

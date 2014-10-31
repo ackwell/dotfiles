@@ -22,11 +22,11 @@ def main():
 
 	# TODO: Allow overriding of path.
 	top_module = Module(os.path.expanduser('~/.dotfiles'), system)
-	load_order = top_module.get_load_order()
+	load_order = top_module.link()
 
 	# TODO: Split this into seperate function and all that jazz
-	for module in load_order:
-		module.link()
+	#for module in load_order:
+	#	module.link()
 
 	# TODO: Only do final linking if not a dry run
 	system.execute(load_order)
@@ -45,7 +45,7 @@ class Module(object):
 		self._load_config()
 		self._set_name()
 
-	def get_load_order(self, load_order=None):
+	def link(self, load_order=None):
 		# If this module doesn't actually exist, cut out now.
 		if not self.exists:
 			return
@@ -53,19 +53,42 @@ class Module(object):
 		if load_order is None:
 			load_order = []
 
+		# Add any ouput mappings defined for this module
+		remove = []
+		for output in self.config.get('outputs', []):
+			path = os.path.join(self.path, output)
+			if not os.path.exists(path) or not os.path.isdir(path):
+				logging.warning('%s is not a valid output directory', path)
+				remove.append(output)
+				continue
+
+			self.system.add_output(output, path)
+
+		# Done externally to avoid editing array that's being looped
+		for output in remove:
+			self.config['outputs'].remove(output)
+
 		# Dependencies need to be loaded before the parent
 		for dep in self._get_dependencies():
 			path = os.path.join(self.path, dep) + '.module'
 			module = Module(path, self.system)
-			module.get_load_order(load_order)
+			module.link(load_order)
 
 		# Include this module
 		load_order.append(self)
 
+		# Remove our outputs now, to avoid the system trying to link files to themselves
+		for output in self.config.get('outputs', []):
+			self.system.remove_output(output)
+
+		# Link all the current outputs
+		for output_name in self.system.output_map.keys():
+			self._link(output_name)
+
 		return load_order
 
-	def link(self):
-		link_dir = os.path.join(self.path, 'link')
+	def _link(self, output_name):
+		link_dir = os.path.join(self.path, output_name)
 
 		# Module doesn't have files to link, jump out
 		# TODO: Handle special cases set by parent modules (i.e. bin, source, etc)
@@ -281,14 +304,14 @@ class System(object):
 		self.action_log.append(('remove', target))
 		logging.debug('Removing ' + target)
 
-		if os.path.isdir(filename) and not os.path.islink(filename):
-			for root, dirs, files in os.walk(filename, topdown=False):
+		if os.path.isdir(target) and not os.path.islink(target):
+			for root, dirs, files in os.walk(target, topdown=False):
 				for file in files:
 					os.remove(os.path.join(root, file))
 				for dir_ in dirs:
 					os.remove(os.path.join(root, dir_))
 		else:
-			os.remove(filename)
+			os.remove(target)
 
 	def _backup(self, target):
 		new_name = target + '.backup-' + str(round(time.time()))
