@@ -237,9 +237,13 @@ class System(object):
 
 			# Recurse into dirs
 			for dir_ in data['dirs']:
-				# TODO: create folder here!
-				# TODO: Handle something already existing where folder would go
-				self._recurse_create_links(os.path.join(path, dir_), output_dir, load_order)
+				rel_path = os.path.join(path, dir_)
+
+				ok = self._mkdir(os.path.join(output_dir, rel_path))
+				if not ok:
+					continue
+
+				self._recurse_create_links(rel_path, output_dir, load_order)
 
 	def _split_path(self, path):
 		# Hat tips to https://stackoverflow.com/questions/4579908/cross-platform-splitting-of-path-in-python
@@ -266,6 +270,15 @@ class System(object):
 		logging.debug('Symlinking %s to %s (is%s a directory)', source, target, '' if target_is_directory else ' not')
 
 		os.symlink(source, target, target_is_directory)
+
+	def _mkdir(self, target):
+		if os.path.exists(target) and not os.path.isdir(target):
+			ok = self._handle_exists(target)
+			if not ok:
+				return False
+
+		self.action_log.append(('mkdir', target))
+		os.mkdir(target)
 
 	def _handle_exists(self, target):
 		# If the file doesn't exist already, OK to continue
