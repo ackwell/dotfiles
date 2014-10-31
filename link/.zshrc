@@ -24,7 +24,7 @@ case "$(ps -o comm= -p $$)" in
 esac
 
 for n in $filematch; do
-	for fn in $(find "$DOTFILES_DIR/source" -name "$n" -type f); do
+	for fn in $(find "$DOTFILES_DIR/source" -name "$n"); do
 		source "$fn"
 	done
 done

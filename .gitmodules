@@ -1,0 +1,6 @@
+[submodule "zsh.module/oh-my-zsh.module/link/.oh-my-zsh"]
+	path = zsh.module/oh-my-zsh.module/link/.oh-my-zsh
+	url = https://github.com/robbyrussell/oh-my-zsh.git
+[submodule "zsh.module/oh-my-zsh.module/syntax-highlighting.module/omz-custom/plugins/zsh-syntax-highlighting"]
+	path = zsh.module/oh-my-zsh.module/syntax-highlighting.module/omz-custom/plugins/zsh-syntax-highlighting
+	url = https://github.com/zsh-users/zsh-syntax-highlighting.git

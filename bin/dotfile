@@ -17,16 +17,13 @@ def main():
 	system = System()
 
 	# Main linking output
-	output_dir = os.path.expanduser('~/dotfiletest')
+	# TODO: Allow overwriting of output dir
+	output_dir = os.path.expanduser('~')
 	system.add_output('link', output_dir)
 
-	# TODO: Allow overriding of path.
+	# TODO: Allow overwriting of path.
 	top_module = Module(os.path.expanduser('~/.dotfiles'), system)
 	load_order = top_module.link()
-
-	# TODO: Split this into seperate function and all that jazz
-	#for module in load_order:
-	#	module.link()
 
 	# TODO: Only do final linking if not a dry run
 	system.execute(load_order)
@@ -91,7 +88,6 @@ class Module(object):
 		link_dir = os.path.join(self.path, output_name)
 
 		# Module doesn't have files to link, jump out
-		# TODO: Handle special cases set by parent modules (i.e. bin, source, etc)
 		if not os.path.exists(link_dir):
 			return
 
@@ -100,8 +96,7 @@ class Module(object):
 			link_rel = root[len(link_dir):].lstrip('/')
 
 			for file in files:
-				# TODO: 'link' shouldn't be hardcoded, allow for multiple thingos and stuff
-				self.system.queue_symlink('link', link_dir, os.path.join(link_rel, file), self.config['name'])
+				self.system.queue_symlink(output_name, link_dir, os.path.join(link_rel, file), self.config['name'])
 
 	def _check_exists(self):
 		if not os.path.exists(self.path):
@@ -203,7 +198,8 @@ class System(object):
 		previous = ''
 		queue[previous][module_name]['path'] = os.path.join(base_path)
 		for segment in segments[:-1]:
-			queue[previous][module_name]['dirs'].append(segment)
+			if segment not in queue[previous][module_name]['dirs']:
+				queue[previous][module_name]['dirs'].append(segment)
 			previous = os.path.join(previous, segment)
 			queue[previous][module_name]['path'] = os.path.join(base_path, previous)
 
@@ -227,7 +223,6 @@ class System(object):
 			return
 
 		# More than one module wants in, recurse/link each
-		# TODO: Deal with possible clobbering
 		for module in load_order:
 			module_name = module.config['name']
 			if module_name not in queue:
@@ -242,6 +237,8 @@ class System(object):
 
 			# Recurse into dirs
 			for dir_ in data['dirs']:
+				# TODO: create folder here!
+				# TODO: Handle something already existing where folder would go
 				self._recurse_create_links(os.path.join(path, dir_), output_dir, load_order)
 
 	def _split_path(self, path):
