@@ -15,7 +15,7 @@ filematch=('*.sh')
 
 # determine current shell
 case "$(ps -o comm= -p $$)" in
-	zsh)
+	-zsh|zsh)
 		filematch+=('*.zsh')
 		;;
 	bash)

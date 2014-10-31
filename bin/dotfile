@@ -222,7 +222,11 @@ class System(object):
 			self._symlink(source, target, True)
 			return
 
-		# More than one module wants in, recurse/link each
+		# More than one module wants in, recurse/link each. Will need to create a folder.
+		ok = self._mkdir(os.path.join(output_dir, path))
+		if not ok:
+			return
+
 		for module in load_order:
 			module_name = module.config['name']
 			if module_name not in queue:
@@ -237,13 +241,7 @@ class System(object):
 
 			# Recurse into dirs
 			for dir_ in data['dirs']:
-				rel_path = os.path.join(path, dir_)
-
-				ok = self._mkdir(os.path.join(output_dir, rel_path))
-				if not ok:
-					continue
-
-				self._recurse_create_links(rel_path, output_dir, load_order)
+				self._recurse_create_links(os.path.join(path, dir_), output_dir, load_order)
 
 	def _split_path(self, path):
 		# Hat tips to https://stackoverflow.com/questions/4579908/cross-platform-splitting-of-path-in-python
@@ -272,7 +270,10 @@ class System(object):
 		os.symlink(source, target, target_is_directory)
 
 	def _mkdir(self, target):
-		if os.path.exists(target) and not os.path.isdir(target):
+		if os.path.exists(target):
+			if os.path.isdir(target):
+				return True
+
 			ok = self._handle_exists(target)
 			if not ok:
 				return False
