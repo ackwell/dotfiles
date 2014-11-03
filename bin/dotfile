@@ -37,6 +37,10 @@ class Module(object):
 		self.config = {}
 		self.exists = True
 
+		# Populated by _load_config
+		self.modules = {}
+		self.outputs = {}
+
 		# Initial setup
 		self._check_exists()
 		self._load_config()
@@ -50,20 +54,7 @@ class Module(object):
 		if load_order is None:
 			load_order = []
 
-		# Add any ouput mappings defined for this module
-		remove = []
-		for output in self.config.get('outputs', []):
-			path = os.path.join(self.path, output)
-			if not os.path.exists(path) or not os.path.isdir(path):
-				logging.warning('%s is not a valid output directory', path)
-				remove.append(output)
-				continue
-
-			self.system.add_output(output, path)
-
-		# Done externally to avoid editing array that's being looped
-		for output in remove:
-			self.config['outputs'].remove(output)
+		self._add_output_mappings()
 
 		# Dependencies need to be loaded before the parent
 		for dep in self._get_dependencies():
@@ -75,28 +66,14 @@ class Module(object):
 		load_order.append(self)
 
 		# Remove our outputs now, to avoid the system trying to link files to themselves
-		for output in self.config.get('outputs', []):
-			self.system.remove_output(output)
+		for name in self.outputs.keys():
+			self.system.remove_output(name)
 
 		# Link all the current outputs
 		for output_name in self.system.output_map.keys():
 			self._link(output_name)
 
 		return load_order
-
-	def _link(self, output_name):
-		link_dir = os.path.join(self.path, output_name)
-
-		# Module doesn't have files to link, jump out
-		if not os.path.exists(link_dir):
-			return
-
-		# Walk the link dir and ask for symlinks (they will be queued to allow for optimisation)
-		for root, dirs, files in os.walk(link_dir):
-			link_rel = root[len(link_dir):].lstrip('/')
-
-			for file in files:
-				self.system.queue_symlink(output_name, link_dir, os.path.join(link_rel, file), self.config['name'])
 
 	def _check_exists(self):
 		if not os.path.exists(self.path):
@@ -114,8 +91,59 @@ class Module(object):
 
 		config = json.load(conf_file, object_pairs_hook=collections.OrderedDict)
 		conf_file.close()
-
 		self.config = config
+
+		# Calculate rules
+		valid_rules = self._calculate_valid_rules(config)
+
+		# Populate the final listings for config that uses rules
+		for section in ('modules', 'outputs',):
+			results = {}
+
+			for module, value in config.get(section, {}).items():
+				if module not in valid_rules:
+					continue
+
+				results.update(value)
+
+			setattr(self, section, results)
+
+	def _calculate_valid_rules(self, config):
+		valid_rules = ['*']
+		for name, methods in config.get('rules', {}).items():
+			valid = True
+
+			for method_name, pattern in methods.items():
+				if not self._check_method_pattern(method_name, pattern):
+					valid = False
+					continue
+
+			if valid:
+				valid_rules.append(name)
+
+		return valid_rules
+
+	def _check_method_pattern(self, method_name, pattern):
+		if not hasattr(platform, method_name):
+			logging.warning('Invalid platform method: %s (method does not exist)', method_name)
+			return False
+
+		method = getattr(platform, method_name)
+
+		if not hasattr(method, '__call__'):
+			logging.warning('Invalid platform method: %s (method is not a function)', method_name)
+			return False
+
+		try:
+			method_value = method()
+		except TypeError:
+			logging.warning('Invalid platform method: %s (requires arguments)', method_name)
+			return False
+
+		if not re.search(pattern, method_value):
+			return False
+
+		return True
 
 	def _set_name(self):
 		# If no name is set in config for the module, calculate one
@@ -125,21 +153,36 @@ class Module(object):
 				basename = basename[:-7]
 			self.config['name'] = basename
 
+	def _add_output_mappings(self):
+		# Add any ouput mappings defined for this module
+		remove = []
+		for name, value in self.outputs.items():
+			path = os.path.join(self.path, name)
+			if value is not None:
+				path = os.path.expanduser(value)
+
+			if not os.path.exists(path) or not os.path.isdir(path):
+				logging.warning('%s is not a valid output directory', path)
+				remove.append(name)
+				continue
+
+			self.system.add_output(name, path)
+
+		# Done externally to avoid editing array that's being looped
+		for name in remove:
+			self.outputs.remove(name)
+
 	def _get_dependencies(self):
 		logging.debug('Calculating dependencies for %s', self.config['name'])
 		whitelist = self.config.get('mode', 'blacklist') == 'whitelist'
 
 		dep_list = [] if whitelist else self._get_modules_in_path()
 
-		for pattern, modules in self.config.get('rules', {}).items():
-			if not self._system_matches(pattern):
-				continue
-
-			for module, enable in modules.items():
-				if enable and module not in dep_list:
-					dep_list.append(module)
-				elif not enable and module in dep_list:
-					dep_list.remove(module)
+		for module, enable in self.modules.items():
+			if enable and module not in dep_list:
+				dep_list.append(module)
+			elif not enable and module in dep_list:
+				dep_list.remove(module)
 
 		return dep_list
 
@@ -148,6 +191,20 @@ class Module(object):
 
 	def _system_matches(self, pattern):
 		return re.search(pattern, self.system.id_string)
+
+	def _link(self, output_name):
+		link_dir = os.path.join(self.path, output_name)
+
+		# Module doesn't have files to link, jump out
+		if not os.path.exists(link_dir):
+			return
+
+		# Walk the link dir and ask for symlinks (they will be queued to allow for optimisation)
+		for root, dirs, files in os.walk(link_dir):
+			link_rel = root[len(link_dir):].lstrip('/')
+
+			for file in files:
+				self.system.queue_symlink(output_name, link_dir, os.path.join(link_rel, file), self.config['name'])
 
 class System(object):
 	def __init__(self):

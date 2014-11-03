@@ -1,6 +1,8 @@
 {
-	"outputs": [
-		"bin",
-		"source"
-	]
+	"outputs": {
+		"*": {
+			"bin": null,
+			"source": null
+		}
+	}
 }
