@@ -189,9 +189,6 @@ class Module(object):
 	def _get_modules_in_path(self):
 		return [os.path.basename(mod)[:-7] for mod in glob.iglob(os.path.join(self.path, '*.module'))]
 
-	def _system_matches(self, pattern):
-		return re.search(pattern, self.system.id_string)
-
 	def _link(self, output_name):
 		link_dir = os.path.join(self.path, output_name)
 
@@ -208,10 +205,9 @@ class Module(object):
 
 class System(object):
 	def __init__(self):
-		self.id_string = getpass.getuser() + '@' + platform.node() + ' ' + platform.system() + '-' + platform.release() + '-' + platform.machine()
-
 		self.output_map = collections.defaultdict(str)
 		self.backup_mappings = collections.defaultdict(list)
+
 		self.link_queue = collections.defaultdict(
 			lambda: collections.defaultdict(
 				lambda: collections.defaultdict(
