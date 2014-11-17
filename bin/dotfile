@@ -65,13 +65,15 @@ class Module(object):
 		# Include this module
 		load_order.append(self)
 
-		# Remove our outputs now, to avoid the system trying to link files to themselves
-		for name in self.outputs.keys():
-			self.system.remove_output(name)
+		# Remove our internal outputs now, to avoid the system trying to link files to themselves
+		self._remove_output_mappings(interior=True)
 
 		# Link all the current outputs
 		for output_name in self.system.output_map.keys():
 			self._link(output_name)
+
+		# Remove the rest of the outputs
+		self._remove_output_mappings(interior=False)
 
 		return load_order
 
@@ -188,6 +190,12 @@ class Module(object):
 
 	def _get_modules_in_path(self):
 		return [os.path.basename(mod)[:-7] for mod in glob.iglob(os.path.join(self.path, '*.module'))]
+
+	def _remove_output_mappings(self, interior):
+		for name, value in self.outputs.items():
+			if (value is None and not interior) or (value is not None and interior):
+				continue
+			self.system.remove_output(name)
 
 	def _link(self, output_name):
 		link_dir = os.path.join(self.path, output_name)
