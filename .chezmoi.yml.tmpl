@@ -1,0 +1,7 @@
+data:
+  environment: 
+    {{ if (eq .chezmoi.group "staff") -}}
+      canva
+    {{- else -}}
+      other
+    {{- end }}
