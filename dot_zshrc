@@ -1,0 +1,6 @@
+# Source all config files
+setopt extendedglob
+for file in ~/.zshrc.d/*~*\#\#*; do source $file; done
+unsetopt extendedglob
+
+# Anything beneath this comment is an unruly piece of shit that's added itself without permission.
