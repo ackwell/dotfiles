@@ -1,7 +1,7 @@
 {{ if eq .chezmoi.os "darwin" }}
 # Add brew completions
 if type brew &>/dev/null; then
-  FPATH=$(brew --prefix)/share/zsh/site-functions:$FPATH
+	FPATH=$(brew --prefix)/share/zsh/site-functions:$FPATH
 fi
 
 # Alias coreutils to the GNU versions
