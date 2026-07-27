@@ -1,5 +1,6 @@
 [tools]
 "aqua:fish-shell/fish-shell" = "latest"
 chezmoi = "latest"
+delta = "latest"
 starship = "latest"
 usage = "latest"
