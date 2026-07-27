@@ -1,0 +1,13 @@
+MenuBar=Disabled
+
+[Desktop Entry]
+DefaultProfile=fih.profile
+
+[General]
+ConfigVersion=1
+
+[TabBar]
+TabBarVisibility=AlwaysShowTabBar
+
+[UiSettings]
+ColorScheme=

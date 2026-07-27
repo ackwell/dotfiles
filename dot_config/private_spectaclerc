@@ -1,0 +1,12 @@
+[General]
+autoSaveImage=true
+clipboardGroup=PostScreenshotCopyImage
+useReleaseToCapture=true
+
+[ImageSave]
+imageFilenameTemplate=<yyyy>-<MM>/<yyyy><MM><dd>-<HH><mm><ss>-<title>
+translatedScreenshotsFolder=Screenshots
+
+[VideoSave]
+translatedScreencastsFolder=Screencasts
+videoFilenameTemplate=<yyyy>-<MM>/<yyyy><MM><dd>-<HH><mm><ss>-<title>
