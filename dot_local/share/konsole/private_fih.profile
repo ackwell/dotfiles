@@ -1,3 +1,6 @@
+[Appearance]
+ColorScheme=catppuccin-macchiato
+
 [Cursor Options]
 CursorShape=1
 

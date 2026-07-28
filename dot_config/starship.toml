@@ -1,0 +1,11 @@
+[directory]
+fish_style_pwd_dir_length = 1
+style = 'cyan'
+repo_root_style = 'underline cyan'
+
+[package]
+disabled = true
+
+[status]
+disabled = false
+pipestatus = true
