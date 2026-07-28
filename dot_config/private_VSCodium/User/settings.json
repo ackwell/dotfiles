@@ -1,0 +1,45 @@
+{
+	// Editing
+	"editor.tabSize": 2,
+	"files.insertFinalNewline": true,
+	"files.trimFinalNewlines": true,
+	"editor.formatOnSave": true,
+	"editor.wordWrap": "on",
+	// Behavior
+	"explorer.autoReveal": "focusNoScroll",
+	"workbench.editor.closeEmptyGroups": false,
+	"workbench.editor.empty.hint": "hidden",
+	"editor.codeLens": false,
+	"editor.inlayHints.enabled": "offUnlessPressed",
+	"security.workspace.trust.untrustedFiles": "newWindow",
+	// VCS
+	"git.enableCommitSigning": true,
+	"git.enableSmartCommit": true,
+	"git.confirmSync": false,
+	// Rust
+	"rust-analyzer.cargo.features": "all",
+	// Theme
+	"workbench.colorTheme": "Catppuccin Macchiato",
+	"workbench.iconTheme": "catppuccin-macchiato",
+	"editor.fontSize": 12,
+	"catppuccin.accentColor": "maroon",
+	"catppuccin.italicKeywords": false,
+	"catppuccin-icons.specificFolders": false,
+	"editor.semanticHighlighting.enabled": true,
+	"editor.guides.bracketPairs": true,
+	"editor.bracketPairColorization.enabled": false,
+	"editor.minimap.renderCharacters": false,
+	// Extensions
+	"vsix.restart.confirm": false,
+	"vsix.extensions": [
+		"zokugun.vsix-manager",
+		"Catppuccin.catppuccin-vsc",
+		"Catppuccin.catppuccin-vsc-icons",
+		"EditorConfig.EditorConfig",
+		"dnut.rewrap-revived",
+		"dbaeumer.vscode-eslint",
+		"Orta.vscode-twoslash-queries",
+		"rust-lang.rust-analyzer",
+		"tamasfe.even-better-toml",
+	],
+}

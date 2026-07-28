@@ -4,6 +4,9 @@ if status is-interactive
 	starship init fish | source
 	enable_transience
 
+	abbr --add cls clear
+	abbr --add code codium
+
 	# I can't live without sudo !! please understand
 	function last_history_item; echo $history[1]; end
 	abbr --add !! --position anywhere --function last_history_item
