@@ -9,5 +9,9 @@ Parent=FALLBACK/
 [Interaction Options]
 AllowEscapedLinks=true
 
+[Scrolling]
+HistoryMode=1
+HistorySize=5000
+
 [Terminal Features]
 BlinkingCursorEnabled=true
