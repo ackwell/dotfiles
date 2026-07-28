@@ -42,4 +42,9 @@
 		"rust-lang.rust-analyzer",
 		"tamasfe.even-better-toml",
 	],
+	"extensions.supportUntrustedWorkspaces": {
+		"tamasfe.even-better-toml": {
+			"supported": "limited"
+		}
+	}
 }
