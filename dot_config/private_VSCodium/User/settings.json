@@ -25,6 +25,19 @@
 	"catppuccin.accentColor": "maroon",
 	"catppuccin.italicKeywords": false,
 	"catppuccin-icons.specificFolders": false,
+	"catppuccin-icons.associations.languages": {
+		"rust": "rust-alt",
+	},
+	"catppuccin-icons.associations.extensions": {
+		"rs": "rust-alt",
+		"ron": "rust-alt",
+	},
+	"catppuccin-icons.associations.files": {
+		"rustfmt.toml": "rust-alt-config",
+		".rustfmt.toml": "rust-alt-config",
+		"rust-toolchain.toml": "rust-alt-config",
+		"clippy.toml": "rust-alt-config",
+	},
 	"editor.semanticHighlighting.enabled": true,
 	"editor.guides.bracketPairs": true,
 	"editor.bracketPairColorization.enabled": false,
