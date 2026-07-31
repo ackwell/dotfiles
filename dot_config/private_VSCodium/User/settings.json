@@ -19,6 +19,7 @@
 	"git.confirmSync": false,
 	// Languages
 	"rust-analyzer.cargo.features": "all",
+	"rust-analyzer.check.command": "clippy",
 	// Theme
 	"workbench.colorTheme": "Catppuccin Macchiato",
 	"workbench.iconTheme": "catppuccin-macchiato",
