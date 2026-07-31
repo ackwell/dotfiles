@@ -5,6 +5,7 @@
 	"files.trimFinalNewlines": true,
 	"editor.formatOnSave": true,
 	"editor.wordWrap": "on",
+	"editor.selectionClipboard": false,
 	// Behavior
 	"explorer.autoReveal": "focusNoScroll",
 	"workbench.editor.closeEmptyGroups": false,
