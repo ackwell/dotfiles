@@ -16,12 +16,15 @@
 	"git.enableCommitSigning": true,
 	"git.enableSmartCommit": true,
 	"git.confirmSync": false,
-	// Rust
+	// Languages
 	"rust-analyzer.cargo.features": "all",
 	// Theme
 	"workbench.colorTheme": "Catppuccin Macchiato",
 	"workbench.iconTheme": "catppuccin-macchiato",
 	"editor.fontSize": 12,
+	"json.schemaDownload.trustedDomains": {
+		"https://raw.githubusercontent.com/catppuccin/vscode/": true
+	},
 	"catppuccin.accentColor": "maroon",
 	"catppuccin.italicKeywords": false,
 	"catppuccin-icons.specificFolders": false,
@@ -50,6 +53,7 @@
 		"Catppuccin.catppuccin-vsc-icons",
 		"EditorConfig.EditorConfig",
 		"dnut.rewrap-revived",
+		"hverlin.mise-vscode",
 		"dbaeumer.vscode-eslint",
 		"Orta.vscode-twoslash-queries",
 		"rust-lang.rust-analyzer",
@@ -59,5 +63,6 @@
 		"tamasfe.even-better-toml": {
 			"supported": "limited"
 		}
-	}
+	},
+	"mise.checkForNewMiseVersion": false,
 }
