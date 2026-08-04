@@ -34,6 +34,10 @@ checksum = "sha256:b196c2f9635486320ff9179c5c5aae9b0109234513c96b0ab0683e7349a40
 url = "https://github.com/fish-shell/fish-shell/releases/download/4.8.1/fish-4.8.1.pkg"
 url_api = "https://api.github.com/repos/fish-shell/fish-shell/releases/assets/476044372"
 
+[[tools."cargo:git-interactive-rebase-tool"]]
+version = "2.4.1"
+backend = "cargo:git-interactive-rebase-tool"
+
 [[tools.chezmoi]]
 version = "2.71.1"
 backend = "aqua:twpayne/chezmoi"

@@ -3,6 +3,14 @@
 [diff]
 	colorMoved = default
 
+[sequence]
+	editor = interactive-rebase-tool
+[interactive-rebase-tool]
+	inputAbort = ESC
+	inputForceRebase = Control+Enter
+	inputMoveSelectionUp = Alt+Up
+	inputMoveSelectionDown = Alt+Down
+
 [core]
 	pager = delta
 [interactive]
