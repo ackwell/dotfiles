@@ -1,5 +1,6 @@
 [tools]
 "aqua:fish-shell/fish-shell" = "latest"
+cargo-binstall = "latest"
 "cargo:git-interactive-rebase-tool" = "latest"
 chezmoi = "latest"
 delta = "latest"
