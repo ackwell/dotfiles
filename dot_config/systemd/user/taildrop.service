@@ -1,0 +1,9 @@
+[Unit]
+Description=Taildrop file receiver
+
+[Service]
+UMask=0077
+ExecStart=tailscale file get --verbose --loop "${HOME}/Downloads"
+
+[Install]
+WantedBy=default.target
