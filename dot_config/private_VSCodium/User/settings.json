@@ -10,6 +10,7 @@
 	"explorer.autoReveal": "focusNoScroll",
 	"workbench.editor.closeEmptyGroups": false,
 	"workbench.editor.empty.hint": "hidden",
+	"workbench.editor.useModal": "off",
 	"editor.codeLens": false,
 	"editor.inlayHints.enabled": "offUnlessPressed",
 	"security.workspace.trust.untrustedFiles": "newWindow",
@@ -23,6 +24,7 @@
 	// Theme
 	"workbench.colorTheme": "Catppuccin Macchiato",
 	"workbench.iconTheme": "catppuccin-macchiato",
+	"workbench.experimental.modernUI": false,
 	"editor.fontSize": 12,
 	"json.schemaDownload.trustedDomains": {
 		"https://raw.githubusercontent.com/catppuccin/vscode/": true
@@ -67,4 +69,20 @@
 		}
 	},
 	"mise.checkForNewMiseVersion": false,
+	"explorer.fileNesting.patterns": {
+		"*.ts": "${capture}.js",
+		"*.js": "${capture}.js.map, ${capture}.min.js, ${capture}.d.ts",
+		"*.jsx": "${capture}.js",
+		"*.tsx": "${capture}.ts",
+		"tsconfig.json": "tsconfig.*.json",
+		"package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, bun.lockb, bun.lock",
+		"Cargo.toml": "Cargo.lock",
+		"*.sqlite": "${capture}.${extname}-*",
+		"*.db": "${capture}.${extname}-*",
+		"*.sqlite3": "${capture}.${extname}-*",
+		"*.db3": "${capture}.${extname}-*",
+		"*.sdb": "${capture}.${extname}-*",
+		"*.s3db": "${capture}.${extname}-*"
+	},
+	"diffEditor.ignoreTrimWhitespace": false,
 }

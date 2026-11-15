@@ -104,8 +104,8 @@
                                         "Widgets": [
                                             {
                                                 "Playlist": {
-                                                    "Columns": "8:132|3|0:2|1|7:2",
-                                                    "HeaderState": "AAAAZXjaY2BgYGVgYLBlYGBsB9JBUDqNASIOAoxAzATEzEDMAhK3X7cj8HWr3A77G2AqyH5L1UP3dSLVcP7OmSAwC6SR4T8QAAAZIxq5",
+                                                    "Columns": "8:132|3|0:2|1|7:2|13",
+                                                    "HeaderState": "AAAAdXjaY2BgYGNgYBBhYGBsBdK6QPoKkE4D4tUMEDlWBghgAmJmIGYEYhaQnP1EGRZ3RsED9lduNOy2e65ov9i+5fxD4x/2N3mehG/+bmy/9WO86Md4MftDniqTgAikkeE/EAAA7agcuw==",
                                                     "ID": "4d453d57d8f34d31af872599b2410aae",
                                                     "Preset": 3,
                                                     "SingleMode": false
@@ -127,6 +127,6 @@
     ],
     "WindowSize": {
         "Height": 1184,
-        "Width": 1286
+        "Width": 1494
     }
 }
