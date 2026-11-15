@@ -26,6 +26,8 @@
 	signingKey = ~/.ssh/id_ed25519.pub
 [gpg]
 	format = ssh
+[gpg.ssh]
+	program = ~/.git-ssh-sign
 [commit]
 	gpgSign = true
 [tag]
